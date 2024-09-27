@@ -38,8 +38,45 @@ router.post('/addnote', fetchuser, [
         }
     })
 
+//Route 3: Update a Note: GET "/api/auth/updatenote", Login required
+router.put('/updatenote/:id', fetchuser, async (req, res) => {
+    try {
+        const { title, description, tag } = req.body;
+        //Create a New Node
+        const newNote = {};
+        //get all data from request body
+        if (title) { newNote.title = title };
+        if (description) { newNote.description = description };
+        if (tag) { newNote.tag = tag };
 
+        //find the note to be updated and update it
+        let note = await Notes.findById(req.params.id);
 
+        //if note with this id doesnt exists
+        if (!note) { return res.status(400).send("Not Found") }
+
+        //the user in this note is not equal to the user making the request to update the note
+        if (note.user.toString() !== req.user.id) {
+            return res.status(401).send("Not Allowed")
+        }
+        note = await Notes.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true })
+        res.json({ note });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Internal Server error");
+    }
+})
+
+// //Route 3: Delete a Note: GET "/api/auth/deletenote", Login required
+// router.get('/deletenote', fetchuser, async (req, res) => {
+//     try {
+//         const notes = await Notes.find({ user: req.user.id });
+//         res.json(notes);
+//     } catch (error) {
+//         console.error(error.message);
+//         res.status(500).send("Internal Server error");
+//     }
+// })
 
 
 
